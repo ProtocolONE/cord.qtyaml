@@ -2,6 +2,8 @@
 #include <QtYaml/qtyaml_global.h>
 
 #include <QtCore/QString>
+#include <QtCore/QDebug>
+
 #include <yaml-cpp/yaml.h>
 
 namespace P1 {
@@ -17,34 +19,53 @@ namespace P1 {
       bool load(const QString& fname);
       void close();
       bool valid() const;
-
-      template <typename T> T value(const QString& name, const T& defValue) const
+      const QVariantMap& data() const;
+      
+      template <typename T> T value(const QString& path, const T& defValue) const
       {
-        try {
-          return this->_config[name].as<T>();
-        }
-        catch (const YAML::Exception& /*ex*/) {
+        T result;
+        if (!tryValue(path, result))
           return defValue;
-        }
+
+        return result;
       }
 
-      template <typename T> bool value(const QString& name, T& value) const
+      template <typename T> bool tryValue(const QString& path, T& value) const
       {
-        try {
-          T result = this->_config[name].as<T>();
-          value = result;
-          return true;
-        }
-        catch (const YAML::Exception& /*ex*/) {
+        QStringList names = path.split('\\');
+        if (names.empty()) {
+          qWarning() << "Ivalid value path:" << path;
           return false;
         }
+
+        QVariant result = this->_data[names.front()];
+        names.pop_front();
+
+        while (!names.empty()) {
+
+          const QString& name = names.front();
+
+          if (result.type() != QMetaType::QVariantMap)
+            break;
+
+          result = result.toMap()[name];
+          names.pop_front();
+        }
+
+        if (!names.empty()) {
+          qWarning() << "Value path not found:" << path;
+          return false;
+        }
+
+        value = YAML::variantTo<T>(result);
+        return result.isValid();
       }
 
     private:
 
     private:
       bool _isValid;
-      YAML::Node _config;
+      QVariantMap _data;
     };
   }
 }

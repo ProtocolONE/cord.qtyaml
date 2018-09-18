@@ -186,13 +186,44 @@ struct convert<QVariant>
   {
     if (node.IsScalar()) {
       rhs = node.Scalar().c_str();
-    }
-    else {
+    } else if (node.IsMap()) {
+      rhs = node.as<QMap<QString, QVariant>>();
+    } else if (node.IsSequence()) {
+      rhs = node.as<QList<QVariant>>();
+    } else if (node.IsNull()) {
+      rhs.clear();
+    } else if (node.IsDefined()) {
+      rhs.clear();
+    } else {
       rhs = node.as<QVariant>();
     }
     return true;
   }
 };
+
+template<typename T>
+inline T variantTo(const QVariant& var)
+{
+  return var;
+}
+
+template<>
+inline int variantTo(const QVariant& var)
+{
+  return var.toInt();
+}
+
+template<>
+inline bool variantTo(const QVariant& var)
+{
+  return var.toBool();
+}
+
+template<>
+inline QString variantTo(const QVariant& var)
+{
+  return var.toString();
+}
 
 // TODO: Add the rest of the container classes
 // QLinkedList, QStack, QQueue, QSet, QMultiMap, QHash, QMultiHash, QStringList, ...

@@ -18,15 +18,19 @@ namespace P1 {
 
     bool ConfigManager::load(const QString& path)
     {
-      if (this->_isValid)
-        return true;
+      this->close();
 
       try {
 
-        this->_config = YAML::LoadFile(path.toStdString());
+        YAML::Node config = YAML::LoadFile(path.toStdString());
+        for (YAML::iterator it = config.begin(); it != config.end(); ++it) {
+          this->_data.insert(it->first.as<QString>(), it->second.as<QVariant>());
+        }
         this->_isValid = true;
       }
-      catch (const YAML::Exception& /*ex*/) {
+      catch (const YAML::Exception& ex) {
+        qWarning() << "Cannot read config file:" << path;
+        qWarning() << "YAML::Exception:" << ex.what();
         this->_isValid = false;
       }
       
@@ -36,7 +40,12 @@ namespace P1 {
     void ConfigManager::close()
     {
       this->_isValid = false;
-      this->_config.reset();// = YAML::Node();
+      this->_data.clear();
+    }
+
+    const QVariantMap& ConfigManager::data() const
+    {
+      return this->_data;
     }
   }
 }
