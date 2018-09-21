@@ -1,4 +1,5 @@
 from conans import ConanFile, MSBuild, VisualStudioBuildEnvironment, tools
+from conans.util.files import tmp_file
 
 componentName = "QtYaml"
 
@@ -11,7 +12,9 @@ class QtYamlConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     options = {"shared": [True, False]}
     default_options = "shared=False"
-    generators = "visual_studio"
+    generators = "visual_studio_multi"
+    requires = "Qt/5.5.1@common/stable", "yaml-cpp/0.6.2@common/stable"
+    build_requires = "Qt/5.5.1@common/stable", "yaml-cpp/0.6.2@common/stable"
 
     scm = {
       "type": "git",
@@ -20,19 +23,55 @@ class QtYamlConan(ConanFile):
     }
     
     def build(self):
-        customBuildType = self.settings.get_safe("build_type")
-        #if self.options.shared == "False":
-          #customBuildType = 'Static {0}'.format(customBuildType)
+      self.output.warn('Using Qt: conan-{0}'.format(self.info.requires["Qt"].full_package_id))
+
+      if self.options.shared == "True":
+        tools.replace_in_file("{0}/{0}.vcxproj".format(componentName), "<ConfigurationType>StaticLibrary</ConfigurationType>", "<ConfigurationType>DynamicLibrary</ConfigurationType>")
+
+      libMachine = {
+        "x86" : "MachineX86"
+        ,'x86_64' : 'MachineX64'
+      }.get(self.settings.get_safe("arch"), "")
+      
+      libMachine_node = "<Lib>" \
+                     "<TargetMachine>{}</TargetMachine>" \
+                     "</Lib>".format(libMachine) if libMachine else ""
+                     
+      runtime_library = {"MT": "MultiThreaded",
+                   "MTd": "MultiThreadedDebug",
+                   "MD": "MultiThreadedDLL",
+                   "MDd": "MultiThreadedDebugDLL"}.get(self.settings.get_safe("compiler.runtime"), "")
+
+      runtime_node = "<RuntimeLibrary>" \
+                     "{}" \
+                     "</RuntimeLibrary>".format(runtime_library) if runtime_library else ""
+
+      props_file_contents = """<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemDefinitionGroup>
+    {0}
+    <ClCompile>
+      {1}
+    </ClCompile>
     
+  </ItemDefinitionGroup>
+</Project>""".format(libMachine_node, runtime_node)
+
+      with tmp_file(props_file_contents) as props_file_path:
         msbuild = MSBuild(self)
         msbuild.build(
         "{0}/{0}.vcxproj".format(componentName)
-         , build_type = customBuildType
+         , toolset = self.settings.compiler.toolset
          , platforms={ 
             "x86" : "Win32"
             ,'x86_64' : 'x64'
           }
-      )
+          ,
+          properties = {
+            "ForceImportBeforeCppTargets" : props_file_path
+          }
+        )
+
 
     def package(self):
         self.copy("*", dst="include", src="{0}/include".format(componentName))

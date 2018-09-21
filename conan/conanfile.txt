@@ -1,7 +1,0 @@
-[requires]
-yaml-cpp/0.6.2@common/stable
-
-[generators]
-visual_studio_multi
-
-[imports]

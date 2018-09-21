@@ -99,12 +99,12 @@
     </QtMoc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="src\qtyaml\ConfigManager.cpp" />
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="include\qtyaml\ConfigManager.h" />
     <ClInclude Include="include\qtyaml\qtyaml.h" />
     <ClInclude Include="include\qtyaml\qtyaml_global.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\qtyaml\ConfigManager.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

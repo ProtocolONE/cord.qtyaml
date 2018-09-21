@@ -26,6 +26,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\qtyaml\ConfigManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
     <ClInclude Include="include\qtyaml\ConfigManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -35,10 +40,5 @@
     <ClInclude Include="include\qtyaml\qtyaml_global.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\qtyaml\ConfigManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
 </Project>
