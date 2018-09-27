@@ -1,3 +1,5 @@
+#pragma once
+
 #include <QtYaml/qtyaml.h>
 #include <QtYaml/qtyaml_global.h>
 
